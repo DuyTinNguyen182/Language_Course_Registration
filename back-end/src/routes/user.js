@@ -20,7 +20,7 @@ const authMiddleware = require('../middleware/authMiddleware');
  *       200:
  *         description: Thành công
  */
-router.get("/registered-course", userController.getAllRegisteredCourses);
+// router.get("/registered-course", userController.getAllRegisteredCourses);
 
 /**
  * @swagger
@@ -88,7 +88,7 @@ router.get('/:id', authMiddleware.authenticate, userController.getUserById);
  *       200:
  *         description: Thành công
  */
-router.get('/:id/registered-courses', authMiddleware.authenticate, userController.getRegisteredCourses);
+// router.get('/:id/registered-courses', authMiddleware.authenticate, userController.getRegisteredCourses);
 
 /**
  * @swagger
@@ -121,7 +121,7 @@ router.get('/:id/registered-courses', authMiddleware.authenticate, userControlle
  *       200:
  *         description: Cập nhật thành công
  */
-router.put('/update-registration/:userId/:courseId', userController.updateRegistration);
+// router.put('/update-registration/:userId/:courseId', userController.updateRegistration);
 
 /**
  * @swagger
@@ -175,7 +175,7 @@ router.put('/:id', authMiddleware.authenticate, userController.updateUserById);
  *       200:
  *         description: Hủy thành công
  */
-router.delete('/:id/unregister-course/:courseId', userController.unregisterCourse);
+// router.delete('/:id/unregister-course/:courseId', userController.unregisterCourse);
 
 /**
  * @swagger
@@ -248,6 +248,6 @@ router.delete('/multiple', authMiddleware.authenticate, authMiddleware.isAdmin, 
  *       500:
  *         description: Lỗi máy chủ
  */
-router.post('/:id/register-course', authMiddleware.authenticate, userController.addRegistrationCourse);
+// router.post('/:id/register-course', authMiddleware.authenticate, userController.addRegistrationCourse);
 
 module.exports = router;

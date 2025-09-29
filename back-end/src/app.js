@@ -31,6 +31,7 @@ app.use('/api/language', require('./routes/language'));
 app.use('/api/languagelevel', require('./routes/languagelevel'));
 app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/course', require('./routes/course'));
+app.use('/api/registration', require('./routes/registration'));
 
 const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {

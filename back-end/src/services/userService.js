@@ -35,7 +35,6 @@ const updateUserById = async (userId, data) => {
   // Chỉ cho phép sửa giới tính 1 lần duy nhất
   if (data.gender !== undefined) {
     if (user.genderEdited) {
-      // Đã từng sửa rồi, không cho phép sửa nữa
       return null;
     } else {
       user.gender = data.gender;
@@ -47,82 +46,10 @@ const updateUserById = async (userId, data) => {
   return user;
 };
 
-const addRegistrationCourse = async (userId, course_id) => {
-  const user = await User.findById(userId);
-  if (!user) return null;
-  user.registrationCourses.push({ course_id });
-  await user.save();
-  return user;
-};
-
-const getRegisteredCourses = async (userId) => {
-  return await User.findById(userId).populate({
-    path: "registrationCourses.course_id",
-    populate: [
-      { path: "language_id" },
-      { path: "languagelevel_id" },
-      { path: "teacher_id" },
-    ],
-  });
-};
-
-const unregisterCourse = async (userId, courseId) => {
-  const user = await User.findById(userId);
-  if (!user) return null;
-  const before = user.registrationCourses.length;
-  user.registrationCourses = user.registrationCourses.filter(
-    (rc) => rc.course_id.toString() !== courseId
-  );
-  if (user.registrationCourses.length === before) return false;
-  await user.save();
-  return true;
-};
-
-const getAllRegisteredCourses = async () => {
-  return await User.find({
-    role: "Student",
-    registrationCourses: { $exists: true, $ne: [] },
-  }).populate({
-    path: "registrationCourses.course_id",
-    populate: [
-      { path: "language_id" },
-      { path: "languagelevel_id" },
-      { path: "teacher_id" },
-    ],
-  });
-};
-
-const updateRegistration = async (userId, courseId, newCourseId) => {
-  const user = await User.findById(userId);
-  if (!user) return { status: "not_found" };
-
-  const index = user.registrationCourses.findIndex(
-    (reg) => reg.course_id.toString() === courseId
-  );
-
-  if (index === -1) return { status: "registration_not_found" };
-
-  const existed = user.registrationCourses.find(
-    (reg) => reg.course_id.toString() === newCourseId
-  );
-
-  if (existed) return { status: "already_registered" };
-
-  user.registrationCourses[index].course_id = newCourseId;
-  user.registrationCourses[index].enrollment_date = new Date();
-  await user.save();
-  return { status: "success" };
-};
-
 module.exports = {
   getAllUsers,
   getUserById,
   getCurrentUser,
   deleteUsersByIds,
   updateUserById,
-  addRegistrationCourse,
-  getRegisteredCourses,
-  unregisterCourse,
-  getAllRegisteredCourses,
-  updateRegistration,
 };
