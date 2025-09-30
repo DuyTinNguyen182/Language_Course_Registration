@@ -31,7 +31,8 @@
       "react-app/jest"
     ]
   },
-  "proxy": "http://backend:3005",
+  "_proxy_note": "Dùng http://backend:3005 khi chạy bằng Docker, dùng http://localhost:3005 khi test local",
+  "proxy": "http://localhost:3005",
   "browserslist": {
     "production": [
       ">0.2%",

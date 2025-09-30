@@ -4,12 +4,8 @@ import { Button, Card, Spin, message } from "antd";
 import { useParams } from "react-router-dom";
 
 function RegisteredCourses() {
-  const [courses, setCourses] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  //   // Lấy userId từ localStorage
-  //   const user = JSON.parse(localStorage.getItem('user'));
-  //   const userId = user?._id;
   const { id: userId } = useParams();
 
   const fetchCourses = async () => {
@@ -20,12 +16,10 @@ function RegisteredCourses() {
 
     try {
       const res = await axios.get(
-        `http://localhost:3005/api/user/${userId}/registered-courses`,
-        {
-          withCredentials: true,
-        }
+        `http://localhost:3005/api/registration/user/${userId}`,
+        { withCredentials: true }
       );
-      setCourses(res.data);
+      setRegistrations(res.data);
       console.log(res.data);
     } catch (err) {
       message.error("Không thể tải danh sách khóa học");
@@ -34,13 +28,11 @@ function RegisteredCourses() {
     }
   };
 
-  const handleUnregister = async (courseId) => {
+  const handleUnregister = async (registrationId) => {
     try {
       await axios.delete(
-        `http://localhost:3005/api/user/${userId}/unregister-course/${courseId}`,
-        {
-          withCredentials: true,
-        }
+        `http://localhost:3005/api/registration/${registrationId}`,
+        { withCredentials: true }
       );
       message.success("Hủy đăng ký thành công");
       fetchCourses();
@@ -57,8 +49,9 @@ function RegisteredCourses() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-      {courses.map((rc, idx) => {
-        const course = rc.course;
+      {registrations.map((rc, idx) => {
+        const course = rc.course_id;
+        console.log("hihi", course);
         if (!course || !course.language_id || !course.languagelevel_id) {
           return (
             <Card key={idx} title="Dữ liệu không đầy đủ">
@@ -72,14 +65,14 @@ function RegisteredCourses() {
             key={idx}
             title={`${course.language_id.language} - ${course.languagelevel_id.language_level}`}
             extra={
-              <Button danger onClick={() => handleUnregister(course._id)}>
+              <Button danger onClick={() => handleUnregister(rc._id)}>
                 Hủy
               </Button>
             }
           >
             <p>
               <b>Ngày bắt đầu:</b>{" "}
-              {new Date(course.Start_Date).toLocaleDateString()}
+              {new Date(course.Start_Date).toLocaleDateString("vi-VN")}
             </p>
             <p>
               <b>Số buổi:</b> {course.Number_of_periods}
@@ -95,7 +88,7 @@ function RegisteredCourses() {
             </p>
             <p>
               <b>Ngày đăng ký:</b>{" "}
-              {new Date(rc.enrollment_date).toLocaleDateString()}
+              {new Date(rc.enrollment_date).toLocaleDateString("vi-VN")}
             </p>
           </Card>
         );
