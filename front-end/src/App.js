@@ -6,6 +6,7 @@ import Register from "./layout/user/Logup/Logup";
 import Login from "./layout/user/Login/Login";
 import ForgotPassword from "./layout/user/ForgotPassword/ForgotPassword";
 import ResetPassword from "./layout/user/ForgotPassword/ResetPassword";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path='/admin/*' element={<AdminLayout />} />        
         <Route path="/*" element={<UserLayout />} />
       </Routes>
+      <ScrollToTopButton />
     </Router>
   );
 }

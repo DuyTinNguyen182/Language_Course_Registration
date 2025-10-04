@@ -155,7 +155,7 @@ function Header() {
                   </div>
                 </div>
                 {currentUser.role === "Admin" && (
-                  <a href="/admin/users" onClick={() => setPopupDisplay(false)}>
+                  <a href="/admin/dashboard" onClick={() => setPopupDisplay(false)}>
                     <ion-icon name="settings-outline"></ion-icon>
                     <span>Admin Dashboard</span>
                   </a>
