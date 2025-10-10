@@ -15,7 +15,13 @@ const userSchema = new mongoose.Schema({
   genderEdited: { type: Boolean, default: false },
   address: { type: String },
   email: { type: String },
-  avatar: { type: String },
+  // avatar: { type: String },
+
+  avatar: { type: String, default: "" },
+  avatarPublicId: {
+    type: String,
+    default: null,
+  },
   
   registrationCourses: [RegistrationCourseSchema]
 });

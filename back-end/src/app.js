@@ -34,6 +34,8 @@ app.use('/api/course', require('./routes/course'));
 app.use('/api/registration', require('./routes/registration'));
 app.use("/api/dashboard", require("./routes/dashboard"));
 
+app.use("/api/upload", require("./routes/upload"));
+
 const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
