@@ -119,6 +119,46 @@ const updateRegistration = async (req, res) => {
   }
 };
 
+// Người dùng tự thực hiện thanh toán
+const processUserPayment = async (req, res) => {
+  try {
+    const registrationId = req.params.id;
+    const userId = req.user.id; // Lấy từ middleware
+
+    if (!isValidObjectId(registrationId)) {
+      return res.status(400).json({ message: "ID đăng ký không hợp lệ" });
+    }
+
+    const updated = await registrationService.updatePaymentStatus(registrationId, userId);
+
+    if (!updated) {
+      return res.status(404).json({ message: "Không tìm thấy lượt đăng ký hoặc bạn không có quyền thực hiện." });
+    }
+    res.status(200).json({ message: "Thanh toán thành công!", registration: updated });
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+// Admin xác nhận thanh toán
+const confirmPaymentByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "ID không hợp lệ" });
+    }
+    // Đối với admin, không cần userId để xác thực quyền sở hữu
+    const updated = await registrationService.updatePaymentStatus(id, null, true);
+
+    if (!updated) {
+      return res.status(404).json({ message: "Không tìm thấy đăng ký" });
+    }
+    res.status(200).json({ message: "Xác nhận thanh toán thành công", registration: updated });
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
 module.exports = {
   registerCourse,
   getCoursesByUser,
@@ -127,4 +167,6 @@ module.exports = {
   getRegistrationById,
   cancelRegistration,
   updateRegistration,
+  processUserPayment,
+  confirmPaymentByAdmin,
 };

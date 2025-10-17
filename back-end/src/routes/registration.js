@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const registrationController = require("../controllers/registrationController");
+const authMiddleware = require('../middleware/authMiddleware');
 
 // Lấy tất cả đăng ký
 router.get("/", registrationController.getAllRegistrations);
@@ -21,6 +22,20 @@ router.delete("/:id", registrationController.cancelRegistration);
 
 // Cập nhật đăng ký (theo id đăng ký)
 router.put("/:id", registrationController.updateRegistration);
+
+// Route cho người dùng tự thanh toán (cập nhật isPaid = true)
+router.patch(
+  "/:id/pay",
+  authMiddleware.authenticate, // Cần xác thực người dùng
+  registrationController.processUserPayment
+);
+
+// Route cho admin xác nhận đã thanh toán
+router.patch(
+  "/:id/confirm-payment",
+  authMiddleware.authenticate, authMiddleware.isAdmin,
+  registrationController.confirmPaymentByAdmin
+);
 
 module.exports = router;
 

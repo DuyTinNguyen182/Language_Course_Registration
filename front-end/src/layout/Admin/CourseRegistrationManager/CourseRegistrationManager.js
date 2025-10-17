@@ -10,6 +10,7 @@ import {
   message,
   Spin,
   Select,
+  Tag,
 } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -19,6 +20,7 @@ function CourseRegistrationManager() {
   const [open, setOpen] = useState(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [modal, contextHolderModal] = Modal.useModal();
 
   const [users, setUsers] = useState([]);
   const [registrations, setRegistrations] = useState([]);
@@ -33,6 +35,25 @@ function CourseRegistrationManager() {
       form.resetFields();
     }
   }, [open]);
+
+  // --- HÀM ĐỂ XÁC NHẬN THANH TOÁN ---
+  const handleConfirmPayment = async (registrationId) => {
+    setSpinning(true);
+    try {
+      await axios.patch(
+        `http://localhost:3005/api/registration/${registrationId}/confirm-payment`,
+        {},
+        { withCredentials: true }
+      );
+      messageApi.success("Xác nhận thanh toán thành công!");
+      fetchData(); // Tải lại dữ liệu để cập nhật bảng
+    } catch (error) {
+      console.error("Lỗi khi xác nhận thanh toán:", error);
+      messageApi.error(error.response?.data?.message || "Xác nhận thất bại.");
+    } finally {
+      setSpinning(false);
+    }
+  };
 
   const columns = [
     {
@@ -60,17 +81,61 @@ function CourseRegistrationManager() {
       dataIndex: "enrollment_date",
       render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "-"),
     },
+    // --- CỘT TRẠNG THÁI THANH TOÁN ---
     {
-      title: "Giảng viên giảng dạy",
-      dataIndex: ["course_id", "teacher_id", "full_name"],
+      title: "Trạng thái",
+      dataIndex: "isPaid",
+      render: (isPaid, record) => (
+        <Tag
+          color={isPaid ? "green" : "volcano"}
+          style={{
+            cursor: isPaid ? "default" : "pointer",
+            userSelect: "none",
+          }}
+          onClick={() => {
+            if (isPaid) return;
+            modal.confirm({
+              title: "Xác nhận thanh toán",
+              content: `Xác nhận học viên "${record.user_id?.fullname}" đã thanh toán?`,
+              okText: "Xác nhận",
+              cancelText: "Hủy",
+              onOk: () => handleConfirmPayment(record._id),
+            });
+          }}
+        >
+          {isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
+        </Tag>
+      ),
     },
+
+    // {
+    //   title: "Sửa",
+    //   dataIndex: "update",
+    //   render: (_, record) => (
+    //     <Link to={`/admin/registercourses/update-registration/${record._id}`}>
+    //       Sửa
+    //     </Link>
+    //   ),
+    //   width: 60,
+    //   align: "center",
+    // },
     {
       title: "Sửa",
-      dataIndex: "update",
+      dataIndex: "actions",
       render: (_, record) => (
-        <Link to={`/admin/registercourses/update-registration/${record._id}`}>
-          Sửa
-        </Link>
+        <Flex gap={8} justify="center">
+          <Link to={`/admin/registercourses/update-registration/${record._id}`}>
+            Sửa
+          </Link>
+          {/* <Button
+            type="link"
+            disabled={record.isPaid} // Vô hiệu hóa nếu đã thanh toán
+            onClick={() => handleConfirmPayment(record._id)}
+            style={{ padding: 0 }}
+          >
+            Xác nhận
+          </Button> */}
+        </Flex>
       ),
       width: 60,
       align: "center",
@@ -182,6 +247,7 @@ function CourseRegistrationManager() {
       style={{ position: "relative" }}
     >
       {contextHolder}
+      {contextHolderModal}
       <Spin spinning={spinning} fullscreen />
       <Breadcrumb
         items={[

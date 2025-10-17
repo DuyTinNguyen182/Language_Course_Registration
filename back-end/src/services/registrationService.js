@@ -61,6 +61,24 @@ const updateRegistration = async (id, data) => {
   return updated;
 };
 
+// Cập nhật trạng thái thanh toán
+const updatePaymentStatus = async (registrationId, userId, isAdmin = false) => {
+  const query = { _id: registrationId };
+
+  // Nếu không phải admin, phải đảm bảo người dùng chỉ cập nhật được đăng ký của chính mình
+  if (!isAdmin) {
+    query.user_id = userId;
+  }
+
+  const updatedRegistration = await RegistrationCourse.findOneAndUpdate(
+    query,
+    { isPaid: true },
+    { new: true } // Trả về document sau khi đã cập nhật
+  );
+
+  return updatedRegistration;
+};
+
 module.exports = {
   registerCourse,
   getCoursesByUser,
@@ -69,4 +87,5 @@ module.exports = {
   getRegistrationById,
   cancelRegistration,
   updateRegistration,
+  updatePaymentStatus,
 };

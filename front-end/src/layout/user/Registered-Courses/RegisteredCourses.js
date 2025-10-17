@@ -62,6 +62,26 @@ function RegisteredCourses() {
     }
   };
 
+  // --- HÀM XỬ LÝ THANH TOÁN ---
+  const handlePayment = async (registrationId) => {
+    setSpinning(true);
+    try {
+      const res = await axios.patch(
+        `http://localhost:3005/api/registration/${registrationId}/pay`,
+        {}, // body rỗng
+        { withCredentials: true }
+      );
+      
+      messageApi.success(res.data.message || "Thanh toán thành công!");
+      fetchCourses(userId); // Tải lại để cập nhật giao diện
+
+    } catch (err) {
+      messageApi.error(err.response?.data?.message || "Thanh toán thất bại.");
+    } finally {
+      setSpinning(false);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       await fetchUserInfo();
@@ -129,12 +149,28 @@ function RegisteredCourses() {
             </p>
 
             {/* Nút hành động */}
-            <div className="card-actions">
+            {/* <div className="card-actions">
               <Button danger onClick={() => handleUnregister(rc._id)}>
                 Hủy
               </Button>
               <Button type="primary" disabled={rc.isPaid}>
                 Thanh toán
+              </Button>
+            </div> */}
+            <div className="card-actions">
+              <Button 
+                danger 
+                onClick={() => handleUnregister(rc._id)}
+                disabled={rc.isPaid} // Vô hiệu hóa nút Hủy nếu đã trả tiền
+              >
+                Hủy
+              </Button>
+              <Button 
+                type="primary" 
+                disabled={rc.isPaid} // Vô hiệu hóa nút nếu đã trả tiền
+                onClick={() => handlePayment(rc._id)}
+              >
+                {rc.isPaid ? 'Đã thanh toán' : 'Thanh toán'}
               </Button>
             </div>
           </Card>
