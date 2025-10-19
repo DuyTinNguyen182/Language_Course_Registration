@@ -63,20 +63,49 @@ function RegisteredCourses() {
   };
 
   // --- HÀM XỬ LÝ THANH TOÁN ---
-  const handlePayment = async (registrationId) => {
+  // const handlePayment = async (registrationId) => {
+  //   setSpinning(true);
+  //   try {
+  //     const res = await axios.patch(
+  //       `http://localhost:3005/api/registration/${registrationId}/pay`,
+  //       {}, // body rỗng
+  //       { withCredentials: true }
+  //     );
+
+  //     messageApi.success(res.data.message || "Thanh toán thành công!");
+  //     fetchCourses(userId); // Tải lại để cập nhật giao diện
+
+  //   } catch (err) {
+  //     messageApi.error(err.response?.data?.message || "Thanh toán thất bại.");
+  //   } finally {
+  //     setSpinning(false);
+  //   }
+  // };
+  const handlePayment = async (registrationId, tuition) => {
     setSpinning(true);
     try {
-      const res = await axios.patch(
-        `http://localhost:3005/api/registration/${registrationId}/pay`,
-        {}, // body rỗng
+      // 1. Gọi API của bạn để lấy URL thanh toán
+      const res = await axios.post(
+        `http://localhost:3005/api/payment/create_payment_url`,
+        {
+          registrationId: registrationId,
+          // Không cần gửi amount vì backend sẽ tự lấy
+        },
         { withCredentials: true }
       );
-      
-      messageApi.success(res.data.message || "Thanh toán thành công!");
-      fetchCourses(userId); // Tải lại để cập nhật giao diện
 
+      const paymentUrl = res.data.url;
+
+      // 2. Nếu có URL, chuyển hướng người dùng
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
+        messageApi.error("Không thể tạo yêu cầu thanh toán.");
+      }
     } catch (err) {
-      messageApi.error(err.response?.data?.message || "Thanh toán thất bại.");
+      messageApi.error(
+        err.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại."
+      );
     } finally {
       setSpinning(false);
     }
@@ -158,19 +187,26 @@ function RegisteredCourses() {
               </Button>
             </div> */}
             <div className="card-actions">
-              <Button 
-                danger 
+              <Button
+                danger
                 onClick={() => handleUnregister(rc._id)}
                 disabled={rc.isPaid} // Vô hiệu hóa nút Hủy nếu đã trả tiền
               >
                 Hủy
               </Button>
-              <Button 
+              {/* <Button 
                 type="primary" 
                 disabled={rc.isPaid} // Vô hiệu hóa nút nếu đã trả tiền
                 onClick={() => handlePayment(rc._id)}
               >
                 {rc.isPaid ? 'Đã thanh toán' : 'Thanh toán'}
+              </Button> */}
+              <Button
+                type="primary"
+                disabled={rc.isPaid}
+                onClick={() => handlePayment(rc._id, rc.course_id.Tuition)} // Truyền rc._id và học phí
+              >
+                {rc.isPaid ? "Đã thanh toán" : "Thanh toán"}
               </Button>
             </div>
           </Card>

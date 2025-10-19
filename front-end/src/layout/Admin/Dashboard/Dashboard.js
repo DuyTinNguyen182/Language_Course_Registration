@@ -153,7 +153,7 @@ const Dashboard = () => {
           </Card>
         </Col>
         <Col span={12}>
-          <Card title="Thống kê học viên & giảng viên">
+          <Card title="Thống kê học viên & đăng ký học">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={barData}>
                 <CartesianGrid strokeDasharray="3 3" />

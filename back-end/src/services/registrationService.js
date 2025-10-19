@@ -3,6 +3,7 @@ const RegistrationCourse = require("../models/RegistrationCourse");
 // --- Hàm populate dùng lại nhiều ---
 const coursePopulate = {
   path: "course_id",
+  // select: 'Start_Date Number_of_periods Tuition Description', 
   populate: [
     { path: "language_id", model: "Language", select: "language" },
     { path: "languagelevel_id", model: "Language_Level", select: "language_level" },

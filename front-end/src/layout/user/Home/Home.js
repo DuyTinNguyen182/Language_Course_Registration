@@ -38,20 +38,38 @@ function Home() {
   };
 
   // Lấy thông tin user hiện tại
+  // useEffect(() => {
+  //   const fetchUserInfo = async () => {
+  //     try {
+  //       const res = await axios.get("http://localhost:3005/api/user/info", {
+  //         withCredentials: true,
+  //       });
+  //       setUserId(res.data._id);
+  //     } catch (err) {
+  //       console.error("Không thể lấy thông tin người dùng:", err);
+  //     }
+  //   };
+
+  //   fetchUserInfo();
+  // }, []);
   useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const res = await axios.get("http://localhost:3005/api/user/info", {
-          withCredentials: true,
-        });
-        setUserId(res.data._id);
-      } catch (err) {
+  const fetchUserInfo = async () => {
+    try {
+      const res = await axios.get("http://localhost:3005/api/user/info", {
+        withCredentials: true,
+      });
+      setUserId(res.data._id);
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        console.log("Người dùng chưa đăng nhập.");
+      } else {
         console.error("Không thể lấy thông tin người dùng:", err);
       }
-    };
+    }
+  };
 
-    fetchUserInfo();
-  }, []);
+  fetchUserInfo();
+}, []);
   const handleRegister = async (courseId) => {
     if (!userId) {
       errorMessage("Hãy đăng nhập để tiếp tục!");
