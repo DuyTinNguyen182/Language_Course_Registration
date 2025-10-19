@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Spin, message } from "antd";
+import { Spin, message, Button, Select, Space } from "antd";
 import CourseDetailModal from "../CourseDetailModal/CourseDetailModal";
+
+const { Option } = Select;
 
 function Courses() {
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -9,6 +11,10 @@ function Courses() {
   const [languages, setLanguages] = useState([]);
   const [spinning, setSpinning] = useState(false);
   const [userId, setUserId] = useState(null);
+
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const [selectedLevel, setSelectedLevel] = useState(null);
+
   const [messageApi, contextHolder] = message.useMessage();
 
   const successMessage = () => {
@@ -23,6 +29,13 @@ function Courses() {
       type: "error",
       content: msg,
     });
+  };
+
+  // Hàm lấy phần tên sau từ "Tiếng" để sắp xếp
+  const getSortKey = (langName) => {
+    if (!langName) return "";
+    const parts = langName.trim().split(" ");
+    return parts.length > 1 ? parts[1] : parts[0];
   };
 
   // Lấy thông tin user hiện tại
@@ -42,64 +55,57 @@ function Courses() {
   }, []);
 
   const handleRegister = async (courseId) => {
-  if (!userId) {
-    errorMessage("Hãy đăng nhập để tiếp tục!");
-    return;
-  }
-  console.log("Sending:", { user_id: userId, course_id: courseId });
-  try {
-    const response = await axios.post(
-      "http://localhost:3005/api/registration",
-      { user_id: userId, course_id: courseId },
-      { withCredentials: true }
-    );
-
-    if (response.status === 201) {
-      successMessage();
-    } else {
-      errorMessage();
+    if (!userId) {
+      errorMessage("Hãy đăng nhập để tiếp tục!");
+      return;
     }
-  } catch (error) {
-    console.error("Lỗi khi đăng ký khóa học:", error);
-    errorMessage(error.response?.data?.message);
-  }
-};
+    try {
+      const response = await axios.post(
+        "http://localhost:3005/api/registration",
+        { user_id: userId, course_id: courseId },
+        { withCredentials: true }
+      );
 
+      if (response.status === 201) {
+        successMessage();
+      } else {
+        errorMessage();
+      }
+    } catch (error) {
+      console.error("Lỗi khi đăng ký khóa học:", error);
+      errorMessage(error.response?.data?.message);
+    }
+  };
 
-  // Lấy dữ liệu khóa học + language + level + teacher
+  // Lấy dữ liệu khóa học (chỉ gọi 1 API)
   const fetchData = async () => {
     setSpinning(true);
     try {
-      const [courseRes, langRes, levelRes, teacherRes] = await Promise.all([
-        axios.get("http://localhost:3005/api/course", {
-          withCredentials: true,
-        }),
-        axios.get("http://localhost:3005/api/language", {
-          withCredentials: true,
-        }),
-        axios.get("http://localhost:3005/api/languagelevel", {
-          withCredentials: true,
-        }),
-        axios.get("http://localhost:3005/api/teacher", {
-          withCredentials: true,
-        }),
-      ]);
+      const courseRes = await axios.get("http://localhost:3005/api/course", {
+        withCredentials: true,
+      });
 
       const courses = courseRes.data;
-      console.log("hahaha", courses);
-      const languages = langRes.data;
-      const levels = levelRes.data;
-      const teachers = teacherRes.data;
 
-      const enrichedCourses = courses.map((course) => ({
-        ...course,
-        language: languages.find((l) => l._id === course.language_id),
-        level: levels.find((lv) => lv._id === course.languagelevel_id),
-        teacher: teachers.find((t) => t._id === course.teacher_id),
-      }));
+      // Lấy danh sách ngôn ngữ duy nhất
+      const uniqueLanguages = [
+        ...new Map(
+          courses.map((c) => [
+            c.language_id,
+            { _id: c.language_id, language: c.language },
+          ])
+        ).values(),
+      ];
 
-      setFeaturedCourses(enrichedCourses);
-      setLanguages(languages);
+      // Sắp xếp ngôn ngữ
+      const sortedLanguages = [...uniqueLanguages].sort((a, b) =>
+        getSortKey(a.language).localeCompare(getSortKey(b.language), "vi", {
+          sensitivity: "base",
+        })
+      );
+
+      setFeaturedCourses(courses);
+      setLanguages(sortedLanguages);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu khóa học:", error);
     } finally {
@@ -111,12 +117,84 @@ function Courses() {
     fetchData();
   }, []);
 
+  // Lọc khóa học theo ngôn ngữ và trình độ
+  const filteredCourses = featuredCourses.filter((course) => {
+    if (selectedLanguage && course.language_id !== selectedLanguage) return false;
+    if (selectedLevel && course.languagelevel_id !== selectedLevel) return false;
+    return true;
+  });
+
+  // Reset filter
+  const resetFilters = () => {
+    setSelectedLanguage(null);
+    setSelectedLevel(null);
+  };
+
   return (
     <div className="allcourses-page">
       {contextHolder} <Spin spinning={spinning} fullscreen />
+
+      {/* Bộ lọc */}
+      <div
+        className="filters"
+        style={{
+          marginBottom: "20px",
+          display: "flex",
+          alignItems: "center",
+          gap: "15px",
+        }}
+      >
+        <Space wrap>
+          <Select
+            allowClear
+            style={{ minWidth: 200 }}
+            placeholder="Chọn ngôn ngữ"
+            value={selectedLanguage || undefined}
+            onChange={(value) => {
+              setSelectedLanguage(value || null);
+              setSelectedLevel(null);
+            }}
+          >
+            {languages.map((lang) => (
+              <Option key={lang._id} value={lang._id}>
+                {lang.language}
+              </Option>
+            ))}
+          </Select>
+
+          <Select
+            allowClear
+            style={{ minWidth: 200 }}
+            placeholder="Chọn trình độ"
+            value={selectedLevel || undefined}
+            onChange={(value) => setSelectedLevel(value || null)}
+            disabled={!selectedLanguage}
+          >
+            {featuredCourses
+              .filter((c) => c.language_id === selectedLanguage)
+              .map((c) => ({
+                _id: c.languagelevel_id,
+                name: c.languagelevel,
+              }))
+              .filter(
+                (level, index, self) =>
+                  level && self.findIndex((l) => l._id === level._id) === index
+              ) // loại trùng
+              .map((level) => (
+                <Option key={level._id} value={level._id}>
+                  {level.name}
+                </Option>
+              ))}
+          </Select>
+
+          <Button onClick={resetFilters}>Reset</Button>
+        </Space>
+      </div>
+
+      {/* Hiển thị danh sách khóa học */}
       {languages.map((lang) => {
-        const coursesInLang = featuredCourses.filter(
-          (course) => course.language?._id === lang._id
+        const coursesInLang = filteredCourses.filter(
+          (course) => course.language_id === lang._id
         );
         if (coursesInLang.length === 0) return null;
 
@@ -125,14 +203,13 @@ function Courses() {
             <h2>KHÓA HỌC {lang.language.toUpperCase()}</h2>
             <div className="course-list">
               {coursesInLang.map((course) => (
-                <div className="course-card" key={course._id}>
+                <div className="course-card" key={course.id}>
                   <div className="top-half">
                     <div className="language">
-                      KHÓA HỌC{" "}
-                      {course.language?.language?.toUpperCase() || "CHƯA RÕ"}
+                      KHÓA HỌC {course.language?.toUpperCase() || "CHƯA RÕ"}
                     </div>
                     <div className="level">
-                      {course.level?.language_level?.toUpperCase() || "CHƯA RÕ"}
+                      {course.languagelevel?.toUpperCase() || "CHƯA RÕ"}
                     </div>
                   </div>
 
@@ -141,9 +218,7 @@ function Courses() {
                       <div>
                         <ion-icon name="caret-forward-outline"></ion-icon> Ngày
                         bắt đầu:{" "}
-                        {new Date(course.Start_Date).toLocaleDateString(
-                          "vi-VN"
-                        )}
+                        {new Date(course.Start_Date).toLocaleDateString("vi-VN")}
                       </div>
                       <div>
                         <ion-icon name="pie-chart"></ion-icon> Số tiết:{" "}
@@ -155,7 +230,7 @@ function Courses() {
                       </div>
                       <div>
                         <ion-icon name="person"></ion-icon> Giảng viên:{" "}
-                        {course.teacher?.full_name || "Đang cập nhật"}
+                        {course.teacher_name || "Đang cập nhật"}
                       </div>
                     </div>
                     <div className="action-buttons">
@@ -179,6 +254,7 @@ function Courses() {
           </div>
         );
       })}
+
       {/* Modal */}
       <CourseDetailModal
         course={selectedCourse}

@@ -1,4 +1,3 @@
-// src/components/layout/user/UserAccount/UserAccount.js
 import {
   HomeOutlined,
   LockOutlined,
@@ -6,18 +5,18 @@ import {
   SmileOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Button, Flex, Form, Input, Spin, message, Select } from "antd";
+import { Button, Flex, Form, Input, Spin, message, Select, Upload } from "antd";
 import { useEffect, useState } from "react";
 import imageCompression from "browser-image-compression";
 import axios from "axios";
-import { storage } from "../../../firebase";
-import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
-import { useParams } from "react-router-dom";
+// import { useParams } from "react-router-dom";
 import { Typography } from "antd";
+import ImgCrop from "antd-img-crop";
+
 const { Title } = Typography;
 
 function UserAcc() {
-  const { id } = useParams();
+  // const { id } = useParams();
 
   const [messageApi, contextHolder] = message.useMessage();
   const [fileList, setFileList] = useState([]);
@@ -25,6 +24,21 @@ function UserAcc() {
   const [userData, setUserData] = useState();
   const [checkChangeAvatar, setCheckChangeAvatar] = useState(false);
   const [genderEdited, setGenderEdited] = useState(false);
+  const [userId, setUserId] = useState(null);
+
+  const fetchUserInfo = async () => {
+    try {
+      const res = await axios.get("http://localhost:3005/api/user/info", {
+        withCredentials: true,
+      });
+      setUserId(res.data._id);
+    } catch (err) {
+      messageApi.open({
+        type: "error",
+        content: "Không thể lấy thông tin người dùng",
+      });
+    }
+  };
 
   const successMessage = () => {
     messageApi.open({
@@ -58,19 +72,20 @@ function UserAcc() {
   };
 
   const onChange = ({ fileList: newFileList }) => {
+    console.log("Updated fileList:", newFileList);
     setFileList(newFileList);
     setCheckChangeAvatar(true);
   };
 
   const handleUpdateById = (newData) => {
     axios
-      .put(`http://localhost:3005/api/user/${id}`, newData, {
+      .put(`http://localhost:3005/api/user/${userId}`, newData, {
         withCredentials: true,
       })
       .then(() => {
         successMessage();
         setSpinning(false);
-        fetchUserData();
+        fetchUserData(userId);
       })
       .catch((error) => {
         console.error("Error updating user:", error);
@@ -86,6 +101,7 @@ function UserAcc() {
     // Xác định có nên gửi trường gender không
     let shouldSendGender = !genderEdited;
 
+    // Nếu có chọn ảnh avatar mới thì upload lên Cloudinary
     if (fileList[0] && checkChangeAvatar) {
       const file = fileList[0].originFileObj;
       const maxImageSize = 1024;
@@ -100,35 +116,34 @@ function UserAcc() {
           });
         }
 
-        const storageRef = ref(storage, `dream/${compressedFile.name}`);
-        const uploadTask = uploadBytesResumable(storageRef, compressedFile);
+        const formData = new FormData();
+        formData.append("avatar", compressedFile);
 
-        uploadTask.on(
-          "state_changed",
-          () => {},
-          (error) => {
-            console.log(error);
-            errorMessage("Lỗi upload ảnh");
-            setSpinning(false);
-          },
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-              const newUserData = {
-                username: values.username,
-                password: values.password,
-                email: values.email,
-                fullname: values.name,
-                address: values.address,
-                avatar: downloadURL,
-                ...(shouldSendGender ? { gender: values.gender } : {}),
-              };
-              handleUpdateById(newUserData);
-            });
+        // Gửi ảnh lên backend để upload Cloudinary
+        const uploadRes = await axios.post(
+          "http://localhost:3005/api/upload/avatar",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
           }
         );
+
+        const avatarUrl = uploadRes.data.url;
+
+        const newUserData = {
+          username: values.username,
+          password: values.password,
+          email: values.email,
+          fullname: values.name,
+          address: values.address,
+          avatar: avatarUrl, // gán URL từ Cloudinary
+          ...(shouldSendGender ? { gender: values.gender } : {}),
+        };
+        handleUpdateById(newUserData);
       } catch (error) {
-        console.error("Image Compression Error:", error);
-        errorMessage("Lỗi nén ảnh");
+        console.error("Image upload error:", error);
+        errorMessage("Lỗi upload ảnh");
         setSpinning(false);
       }
     } else {
@@ -144,24 +159,26 @@ function UserAcc() {
     }
   };
 
-  const fetchUserData = async () => {
+  const fetchUserData = async (uid) => {
     setSpinning(true);
     axios
-      .get(`http://localhost:3005/api/user/${id}`, {
+      .get(`http://localhost:3005/api/user/${uid}`, {
         withCredentials: true,
       })
       .then((response) => {
         const user = response.data;
         setUserData(user);
         setGenderEdited(!!user.genderEdited);
-        setFileList([
-          {
-            uid: "-1",
-            name: "avatar.png",
-            status: "done",
-            url: user.avatar,
-          },
-        ]);
+        if (user.avatar) {
+          setFileList([
+            {
+              uid: "-1",
+              name: "avatar.png",
+              status: "done",
+              url: user.avatar,
+            },
+          ]);
+        }
         setSpinning(false);
       })
       .catch((error) => {
@@ -171,23 +188,26 @@ function UserAcc() {
   };
 
   useEffect(() => {
-    fetchUserData();
+    const init = async () => {
+      await fetchUserInfo();
+    };
+    init();
   }, []);
+
+  // useEffect(() => {
+  //   fetchUserData();
+  // }, []);
+  useEffect(() => {
+    if (userId) {
+      fetchUserData(userId); // Khi có userId thì mới gọi dữ liệu chi tiết
+    }
+  }, [userId]);
 
   return (
     <Flex className="UpdateUser" vertical gap={20}>
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
-      {/* <Breadcrumb
-                items={[
-                    {
-                        title: <Link to="/">Trang chủ</Link>,
-                    },
-                    {
-                        title: 'Tài khoản của tôi',
-                    },
-                ]}
-            /> */}
+
       {userData && (
         <Form
           name="update_user"
@@ -208,7 +228,36 @@ function UserAcc() {
           >
             Thông tin tài khoản
           </Title>
-          <Form.Item name="name" label="Họ và tên" rules={[{ required: true, message: "Vui lòng nhập họ và tên!" }]}>
+
+          {/* Upload ảnh avatar */}
+          <Form.Item label="Ảnh đại diện">
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginBottom: "20px",
+              }}
+            >
+              <ImgCrop aspect={1} showGrid rotationSlider quality={0.9}>
+                <Upload
+                  listType="picture-circle"
+                  fileList={fileList}
+                  onPreview={onPreview}
+                  onChange={onChange}
+                  // beforeUpload={() => false} // Ngăn Upload auto
+                  maxCount={1}
+                >
+                  {fileList.length < 1 && "+ Tải lên"}
+                </Upload>
+              </ImgCrop>
+            </div>
+          </Form.Item>
+
+          <Form.Item
+            name="name"
+            label="Họ và tên"
+            rules={[{ required: true, message: "Vui lòng nhập họ và tên!" }]}
+          >
             <Input
               prefix={<SmileOutlined />}
               placeholder="Nhập họ và tên"
@@ -216,6 +265,7 @@ function UserAcc() {
               size="large"
             />
           </Form.Item>
+
           <Form.Item
             name="gender"
             label="Giới tính"
@@ -224,17 +274,18 @@ function UserAcc() {
             {genderEdited ? (
               <Input value={userData.gender} disabled readOnly size="large" />
             ) : (
-              <Select
-                placeholder="Chọn giới tính"
-                size="large"
-                allowClear={false}
-              >
+              <Select placeholder="Chọn giới tính" size="large">
                 <Select.Option value="Nam">Nam</Select.Option>
                 <Select.Option value="Nữ">Nữ</Select.Option>
               </Select>
             )}
           </Form.Item>
-          <Form.Item name="email" label="Email" rules={[{ required: true, message: "Vui lòng nhập Email!" }]}>
+
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[{ required: true, message: "Vui lòng nhập Email!" }]}
+          >
             <Input
               prefix={<MailOutlined />}
               placeholder="Email"
@@ -242,15 +293,12 @@ function UserAcc() {
               size="large"
             />
           </Form.Item>
-          {/* <Form.Item name="username" label="Tên đăng nhập" rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập!" }]}>
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="Tên đăng nhập"
-              allowClear
-              size="large"
-            />
-          </Form.Item>                    */}
-          <Form.Item name="address" label="Địa chỉ" rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}>
+
+          <Form.Item
+            name="address"
+            label="Địa chỉ"
+            rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}
+          >
             <Input
               prefix={<HomeOutlined />}
               placeholder="Địa chỉ"
@@ -258,6 +306,7 @@ function UserAcc() {
               size="large"
             />
           </Form.Item>
+
           <Form.Item>
             <Button
               type="primary"

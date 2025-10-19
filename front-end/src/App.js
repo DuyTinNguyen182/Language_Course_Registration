@@ -6,11 +6,15 @@ import Register from "./layout/user/Logup/Logup";
 import Login from "./layout/user/Login/Login";
 import ForgotPassword from "./layout/user/ForgotPassword/ForgotPassword";
 import ResetPassword from "./layout/user/ForgotPassword/ResetPassword";
+import ScrollToTopButton from "./components/ScrollToTopButton";
+
+import PaymentResult from "./layout/user/PaymentResult/PaymentResult";
 
 function App() {
   return (
     <Router>
-      <Routes>          
+      <Routes>
+        <Route path="/payment-result" element={<PaymentResult />} />          
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />}/>
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -18,6 +22,7 @@ function App() {
         <Route path='/admin/*' element={<AdminLayout />} />        
         <Route path="/*" element={<UserLayout />} />
       </Routes>
+      <ScrollToTopButton />
     </Router>
   );
 }
