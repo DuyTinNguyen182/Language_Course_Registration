@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Button, Table, Flex, Breadcrumb, Modal, Form, Input, Select, Spin, message } from 'antd';
+import { Button, Table, Flex, Breadcrumb, Modal, Form, Input, Select, Spin, message, Result } from 'antd';
 import axios from 'axios';
 
 import { Link } from "react-router-dom";
+import { useAuth } from '../../../context/AuthContext';
 
 function CourseManager() {
     const [open, setOpen] = useState(false);
@@ -18,6 +19,9 @@ function CourseManager() {
 
     const [selectedLanguageId, setSelectedLanguageId] = useState(null);
     const [form] = Form.useForm();
+
+    const { state } = useAuth();
+    const { currentUser } = state;
 
     useEffect(() => {
     if (open) {
@@ -178,6 +182,21 @@ function CourseManager() {
 
         setFilteredCourses(filtered);
     };
+
+    if (!currentUser || currentUser.role !== 'Admin') {
+        return (
+            <Result
+                status="403"
+                title="403 - Forbidden"
+                subTitle="Xin lỗi, bạn không có quyền truy cập vào trang này."
+                extra={
+                    <Link to="/">
+                        <Button type="primary">Quay về Trang chủ</Button>
+                    </Link>
+                }
+            />
+        );
+    }
 
     return (
         <Flex vertical gap={20} style={{ position: "relative" }}>

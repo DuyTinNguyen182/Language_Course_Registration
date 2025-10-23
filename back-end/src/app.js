@@ -32,7 +32,7 @@ app.use('/api/languagelevel', require('./routes/languagelevel'));
 app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/course', require('./routes/course'));
 app.use('/api/registration', require('./routes/registration'));
-app.use("/api/dashboard", require("./routes/dashboard"));
+app.use("/api/overview", require("./routes/overview"));
 
 app.use("/api/upload", require("./routes/upload"));
 

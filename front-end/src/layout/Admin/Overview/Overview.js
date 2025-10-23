@@ -23,7 +23,7 @@ import {
   Legend,
 } from "recharts";
 
-const Dashboard = () => {
+const Overview = () => {
   const [stats, setStats] = useState({
     courses: 0,
     languages: 0,
@@ -37,12 +37,12 @@ const Dashboard = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("/api/dashboard/stats", {
+        const res = await axios.get("/api/overview/stats", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setStats(res.data);
       } catch (error) {
-        console.error("Lỗi khi lấy thống kê dashboard", error);
+        console.error("Lỗi khi lấy thống kê overview", error);
       }
     };
     fetchStats();
@@ -171,4 +171,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Overview;

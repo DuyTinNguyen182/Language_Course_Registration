@@ -5,7 +5,7 @@ const Teacher = require("../models/Teacher");
 const User = require("../models/user");
 const RegistrationCourse = require("../models/RegistrationCourse");
 
-const getDashboardStats = async () => {
+const getOverviewStats = async () => {
   const totalCourses = await Course.countDocuments();
   const totalLanguages = await Language.countDocuments();
   const totalLevels = await LanguageLevel.countDocuments();
@@ -24,5 +24,5 @@ const getDashboardStats = async () => {
 };
 
 module.exports = {
-  getDashboardStats,
+  getOverviewStats,
 };

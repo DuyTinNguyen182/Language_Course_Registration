@@ -26,7 +26,7 @@ import CourseManager from "./CourseManager/CourseManager";
 import UpdateCourse from "./CourseManager/UpdateCourse";
 import CourseRegistrationManager from "./CourseRegistrationManager/CourseRegistrationManager";
 import UpdateCourseRegistration from "./CourseRegistrationManager/UpdateCourseRegistration";
-import Dashboard from "./Dashboard/Dashboard";
+import Overview from "./Overview/Overview";
 
 const { Sider } = Layout;
 
@@ -35,7 +35,7 @@ function getItem(label, key, icon, children) {
 }
 
 const items = [
-  getItem(<Link to="/admin/dashboard">Tổng quan</Link>, "dashboard", <PieChartOutlined />),
+  getItem(<Link to="/admin/overview">Tổng quan</Link>, "overview", <PieChartOutlined />),
   getItem(<Link to="/admin/users">Quản lý người dùng</Link>, "users", <UserOutlined />),
   getItem(<Link to="/admin/languages">Quản lý ngôn ngữ</Link>, "languages", <GlobalOutlined />),
   getItem(<Link to="/admin/languageslevel">Quản lý trình độ</Link>, "languageslevel", <BarChartOutlined />),
@@ -59,7 +59,7 @@ const AdminLayout = () => {
     location.pathname.startsWith("/admin/registercourses") ? "registercourses" :
     location.pathname.startsWith("/admin/languageslevel") ? "languageslevel" :
     location.pathname.startsWith("/admin/languages") ? "languages" :
-    "dashboard";
+    "overview";
 
   const fetchUserData = () => {
     axios
@@ -97,8 +97,8 @@ const AdminLayout = () => {
           <Layout style={{ padding: "20px 30px", height: "100vh", overflowY: "auto" }}>
             <Routes>
               {/* redirect gọn bằng Navigate */}
-              <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
+              <Route path="overview" element={<Overview />} />
               <Route path="users" element={<UserManager />} />
               <Route path="users/update/:id" element={<UpdateUser />} />
               <Route path="teachers" element={<TeacherManager />} />
