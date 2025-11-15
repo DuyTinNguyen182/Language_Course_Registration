@@ -6,6 +6,9 @@ const RegistrationCourseSchema = new mongoose.Schema({
   enrollment_date: { type: Date, default: Date.now },
 
   isPaid: { type: Boolean, default: false },
+},
+{ 
+  timestamps: true 
 });
 
 module.exports = mongoose.model('Registration_Course', RegistrationCourseSchema);

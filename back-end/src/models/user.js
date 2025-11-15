@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
-const RegistrationCourseSchema = new mongoose.Schema({
-  course_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-  enrollment_date: { type: Date, default: Date.now }
-}, { _id: false });
-
+// Tham số thứ nhất: Định nghĩa các trường
 const userSchema = new mongoose.Schema({
   userid: { type: String, required: true},
   username: { type: String, required: true, unique: true },
@@ -15,17 +11,15 @@ const userSchema = new mongoose.Schema({
   genderEdited: { type: Boolean, default: false },
   address: { type: String },
   email: { type: String },
-  // avatar: { type: String },
-
   avatar: { type: String, default: "" },
   avatarPublicId: {
     type: String,
     default: null,
   },
-  
-  registrationCourses: [RegistrationCourseSchema]
+}, 
+{ 
+  timestamps: true 
 });
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
-

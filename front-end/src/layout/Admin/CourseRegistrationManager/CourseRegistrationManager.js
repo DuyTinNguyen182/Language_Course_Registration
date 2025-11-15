@@ -1,20 +1,9 @@
 import { useEffect, useState } from "react";
-import {
-  Button,
-  Table,
-  Flex,
-  Breadcrumb,
-  Modal,
-  Form,
-  Input,
-  message,
-  Spin,
-  Select,
-  Tag,
-} from "antd";
+import {  Button,  Table,  Flex,  Breadcrumb,  Modal,  Form,  Input,  message,  Spin,  Select,  Tag,  Result } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
 
 function CourseRegistrationManager() {
   const [open, setOpen] = useState(false);
@@ -29,6 +18,8 @@ function CourseRegistrationManager() {
   const [spinning, setSpinning] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
+  const { state } = useAuth();
+  const { currentUser } = state;
 
   useEffect(() => {
     if (open) {
@@ -238,6 +229,21 @@ function CourseRegistrationManager() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  if (!currentUser || currentUser.role !== "Admin") {
+    return (
+      <Result
+        status="403"
+        title="403 - Forbidden"
+        subTitle="Xin lỗi, bạn không có quyền truy cập vào trang này."
+        extra={
+          <Link to="/">
+            <Button type="primary">Quay về Trang chủ</Button>
+          </Link>
+        }
+      />
+    );
+  }
 
   return (
     <Flex

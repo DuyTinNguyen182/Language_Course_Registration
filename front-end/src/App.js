@@ -10,20 +10,24 @@ import ScrollToTopButton from "./components/ScrollToTopButton";
 
 import PaymentResult from "./layout/user/PaymentResult/PaymentResult";
 
+import { AuthProvider } from "./context/AuthContext";
+
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/payment-result" element={<PaymentResult />} />          
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />}/>
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path='/admin/*' element={<AdminLayout />} />        
-        <Route path="/*" element={<UserLayout />} />
-      </Routes>
-      <ScrollToTopButton />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/payment-result" element={<PaymentResult />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/admin/*" element={<AdminLayout />} />
+          <Route path="/*" element={<UserLayout />} />
+        </Routes>
+        <ScrollToTopButton />
+      </Router>
+    </AuthProvider>
   );
 }
 

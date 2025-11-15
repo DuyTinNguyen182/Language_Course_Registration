@@ -3,6 +3,8 @@ import axios from "axios";
 import { Spin, message, Button, Select, Space } from "antd";
 import CourseDetailModal from "../CourseDetailModal/CourseDetailModal";
 
+import { useAuth } from "../../../context/AuthContext";
+
 const { Option } = Select;
 
 function Courses() {
@@ -10,7 +12,11 @@ function Courses() {
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [languages, setLanguages] = useState([]);
   const [spinning, setSpinning] = useState(false);
-  const [userId, setUserId] = useState(null);
+  // const [userId, setUserId] = useState(null);
+
+  const { state } = useAuth();
+  const { currentUser } = state;
+  const userId = currentUser?._id;
 
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
@@ -39,20 +45,20 @@ function Courses() {
   };
 
   // Lấy thông tin user hiện tại
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const res = await axios.get("http://localhost:3005/api/user/info", {
-          withCredentials: true,
-        });
-        setUserId(res.data._id);
-      } catch (err) {
-        console.error("Không thể lấy thông tin người dùng:", err);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUserInfo = async () => {
+  //     try {
+  //       const res = await axios.get("http://localhost:3005/api/user/info", {
+  //         withCredentials: true,
+  //       });
+  //       setUserId(res.data._id);
+  //     } catch (err) {
+  //       console.error("Không thể lấy thông tin người dùng:", err);
+  //     }
+  //   };
 
-    fetchUserInfo();
-  }, []);
+  //   fetchUserInfo();
+  // }, []);
 
   const handleRegister = async (courseId) => {
     if (!userId) {

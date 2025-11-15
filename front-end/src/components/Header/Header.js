@@ -5,38 +5,55 @@ import logo from "../../imgs/logo.png";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
+import { useAuth } from "../../context/AuthContext";
+
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const [popupDisplay, setPopupDisplay] = useState(false);
 
-  const [currentUser, setCurrentUser] = useState();
+  const { state, dispatch } = useAuth();
+  const { currentUser } = state; // Lấy currentUser từ state
 
-  const fecthUserData = () => {
-    axios
-      .get(`http://localhost:3005/api/user/info`, {
-        withCredentials: true,
-      })
-      .then((response) => {        
-        setCurrentUser(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+  // const [currentUser, setCurrentUser] = useState();
 
-  const handleLogout = () => {
-    axios
-      .get(`http://localhost:3005/api/auth/logout`, {
+  // const fecthUserData = () => {
+  //   axios
+  //     .get(`http://localhost:3005/api/user/info`, {
+  //       withCredentials: true,
+  //     })
+  //     .then((response) => {        
+  //       setCurrentUser(response.data);
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+  // };
+
+  // const handleLogout = () => {
+  //   axios
+  //     .get(`http://localhost:3005/api/auth/logout`, {
+  //       withCredentials: true,
+  //     })
+  //     .then((response) => {
+  //       console.log(response.data);
+  //       navigate("/");
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+  // };
+  const handleLogout = async () => {
+    try {
+      await axios.get(`http://localhost:3005/api/auth/logout`, {
         withCredentials: true,
-      })
-      .then((response) => {
-        console.log(response.data);
-        navigate("/");
-      })
-      .catch((error) => {
-        console.log(error);
       });
+      // Dispatch hành động để xóa user khỏi trạng thái toàn cục
+      dispatch({ type: 'AUTH_FAILURE' }); 
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleLoginClick = () => {
@@ -48,9 +65,9 @@ function Header() {
     navigate("/login", { state: stateData });
   };
 
-  useEffect(() => {
-    fecthUserData();
-  }, []);
+  // useEffect(() => {
+  //   fecthUserData();
+  // }, []);
   useEffect(() => {
     const handleClickOutside = (event) => {
       const avatar = document.querySelector(".Header_avatar img");
@@ -155,7 +172,7 @@ function Header() {
                   </div>
                 </div>
                 {currentUser.role === "Admin" && (
-                  <a href="/admin/dashboard" onClick={() => setPopupDisplay(false)}>
+                  <a href="/admin/overview" onClick={() => setPopupDisplay(false)}>
                     <ion-icon name="settings-outline"></ion-icon>
                     <span>Admin Dashboard</span>
                   </a>

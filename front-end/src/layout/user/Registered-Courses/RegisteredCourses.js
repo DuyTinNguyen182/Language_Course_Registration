@@ -3,27 +3,35 @@ import axios from "axios";
 import { Button, Card, Spin, message, Tag } from "antd";
 import "./RegisteredCourses.css";
 
+import { useAuth } from "../../../context/AuthContext";
+
 function RegisteredCourses() {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState(null);
+  // const [userId, setUserId] = useState(null);
   const [spinning, setSpinning] = useState(false);
+
+  const { state } = useAuth();
+  const { currentUser } = state;
+  const userId = currentUser?._id;
+
+  // console.log(currentUser);
 
   const [messageApi, contextHolder] = message.useMessage();
 
-  const fetchUserInfo = async () => {
-    try {
-      const res = await axios.get("http://localhost:3005/api/user/info", {
-        withCredentials: true,
-      });
-      setUserId(res.data._id);
-    } catch (err) {
-      messageApi.open({
-        type: "error",
-        content: "Không thể lấy thông tin người dùng",
-      });
-    }
-  };
+  // const fetchUserInfo = async () => {
+  //   try {
+  //     const res = await axios.get("http://localhost:3005/api/user/info", {
+  //       withCredentials: true,
+  //     });
+  //     setUserId(res.data._id);
+  //   } catch (err) {
+  //     messageApi.open({
+  //       type: "error",
+  //       content: "Không thể lấy thông tin người dùng",
+  //     });
+  //   }
+  // };
 
   const fetchCourses = async (uid) => {
     if (!uid) return;
@@ -111,12 +119,12 @@ function RegisteredCourses() {
     }
   };
 
-  useEffect(() => {
-    const init = async () => {
-      await fetchUserInfo();
-    };
-    init();
-  }, []);
+  // useEffect(() => {
+  //   const init = async () => {
+  //     await fetchUserInfo();
+  //   };
+  //   init();
+  // }, []);
 
   useEffect(() => {
     if (userId) {
